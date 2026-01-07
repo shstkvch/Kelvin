@@ -1,6 +1,8 @@
 # Kelvin 
 
-**A declarative language for building web applications.** An on-going experiment in building a new programming language with Claude Code.
+**A declarative language for building web applications.** 
+
+⚠️ This is an on-going experiment in building a new programming language with Claude Code. Use at your own risk.
 
 Define your data models, APIs, admin interfaces, and access control in a single file. No boilerplate, no code generation, no framework to learn.
 
