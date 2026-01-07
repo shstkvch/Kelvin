@@ -4,6 +4,7 @@ import { QueryBuilder } from '../runtime/query-builder';
 import { AppNode, ViewNode, ListBlockNode, CreateBlockNode, EditBlockNode } from '../parser/ast';
 import { verifyToken, generateToken } from '../auth/jwt';
 import { verifyPassword } from '../auth/password';
+import { consumeOTLToken } from '../auth/one-time-login';
 import { AppContext } from '../api/server';
 import {
   renderLayout,
@@ -32,8 +33,36 @@ export function createAdminRouter(db: Database, appCtx: AppContext, secret?: str
     next();
   });
 
-  // Login page
-  router.get('/login', (_req, res) => {
+  // Login page (also handles one-time login tokens)
+  router.get('/login', (req, res) => {
+    const token = req.query.token as string | undefined;
+
+    if (token) {
+      // Attempt to consume the one-time login token
+      const result = consumeOTLToken(db, token);
+
+      if (result.valid && result.userId) {
+        // Get user data
+        const user = db.queryOne('SELECT * FROM users WHERE id = ?', [result.userId]) as Record<string, unknown> | null;
+
+        if (user) {
+          // Generate JWT and set cookie
+          const jwtToken = generateToken({
+            userId: user.id as string,
+            email: user.email as string,
+            role: user.role as string | undefined,
+          }, secret);
+
+          res.cookie('admin_token', jwtToken, { httpOnly: true });
+          return res.redirect('/admin');
+        }
+      }
+
+      // Token invalid, expired, or user not found - show error
+      return res.send(renderLoginPage(appCtx.ast, result.error || 'Invalid login link'));
+    }
+
+    // No token - show normal login page
     res.send(renderLoginPage(appCtx.ast));
   });
 

@@ -44,6 +44,7 @@ That's it. You have a database, REST API, and admin panel.
 - **Instant API** - REST endpoints generated automatically from your schema
 - **Built-in admin** - A working admin interface out of the box
 - **Authentication** - JWT-based auth with user registration and login
+- **User management** - Create users and generate one-time login links from CLI
 - **Hot reload** - Edit your `.kelvin` file and see changes instantly
 - **Type validation** - Rich type system with constraints (`text(1..100)`, `email`, `int(0..*)`)
 - **SQLite storage** - Zero-config database that just works

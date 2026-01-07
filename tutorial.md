@@ -182,7 +182,15 @@ You'll see a login page. But wait - we haven't created any users yet!
 
 ### Create an admin user
 
-The admin view requires authentication. Let's register a user:
+The easiest way to create an admin user is with the CLI. In a new terminal:
+
+```bash
+kelvin create-user guestbook.kelvin
+```
+
+You'll be prompted for email, password, name, and role. Press Enter to accept the defaults (`admin@example.com` / any password you choose).
+
+Alternatively, you can register via the API:
 
 ```bash
 curl -X POST http://localhost:3000/auth/register \
@@ -190,9 +198,17 @@ curl -X POST http://localhost:3000/auth/register \
   -d '{"email": "admin@example.com", "password": "password123"}'
 ```
 
-Now go back to http://localhost:3000/admin and log in with:
-- Email: `admin@example.com`
-- Password: `password123`
+Now go back to http://localhost:3000/admin and log in with your credentials.
+
+### Quick login with one-time link
+
+If you've forgotten your password or want quick access, generate a one-time login link:
+
+```bash
+kelvin one-time-login guestbook.kelvin admin@example.com
+```
+
+This generates a URL you can open in your browser to log in instantly. The link expires after 15 minutes and can only be used once.
 
 You'll see the admin panel where you can view and delete guestbook entries.
 

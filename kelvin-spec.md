@@ -327,6 +327,64 @@ Options:
 - `--dry-run`: Show SQL without executing *(Planned)*
 - `--rollback`: Rollback last migration *(Planned)*
 
+### `kelvin create-user`
+
+Create an admin user interactively. Useful for setting up initial access to the admin panel.
+
+```bash
+$ kelvin create-user myapp.kelvin
+```
+
+**Example Output:**
+
+```
+Creating user for MyApp...
+
+? Email (admin@example.com): admin@mycompany.com
+? Password: ********
+? Confirm password: ********
+? Name (Admin): Alice Admin
+? Role (admin): admin
+
+User created successfully!
+
+  Email: admin@mycompany.com
+  Name:  Alice Admin
+  Role:  admin
+  ID:    a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+Default values when pressing Enter:
+- Email: `admin@example.com`
+- Password: (must be provided)
+- Name: `Admin`
+- Role: `admin` (or first enum value if 'admin' not available)
+
+Options:
+- `--db`: Custom database path. Default: `{app_name}.db`
+
+### `kelvin one-time-login`
+
+Generate a one-time login link for an existing user. The link expires after 15 minutes and can only be used once.
+
+```bash
+$ kelvin one-time-login myapp.kelvin admin@example.com
+```
+
+**Example Output:**
+
+```
+One-time login link generated:
+
+  http://localhost:3000/admin/login?token=Xk9mPq2rStUvWxYzAbCdEfGhIjKlMnOpQrStUvWx
+
+Expires in 15 minutes. This link can only be used once.
+```
+
+Options:
+- `--db`: Custom database path. Default: `{app_name}.db`
+- `--port`: Port for the generated URL. Default: `3000`
+
 ### `kelvin console` *(Planned)*
 
 Interactive REPL for querying your data.
