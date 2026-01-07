@@ -65,7 +65,7 @@ Views define API endpoints and permissions:
 
 ```
 view blog {
-  visibility: public           -- No auth required
+  visibility: public           -- No auth required for API calls
 
   list Post {
     show: title, author, created
@@ -109,7 +109,7 @@ view admin {
 
 ### Visibility
 
-- `visibility: public` - No authentication required
+- `visibility: public` - No authentication required for API calls
 - Default - Requires authentication
 - `require: condition` - Custom access rules (planned)
 

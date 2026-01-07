@@ -16,3 +16,9 @@ Use these tools when necessary:
 ## Code style
 
 Write clean, modern code that can be understood by other developers. 
+
+## Intellisense/VSCode extension
+
+There is a vscode extension for the project that lives in ./vscode-kelvin. It is also documented extensively in specification.md.
+
+When making changes to the codebase, eg adding a new language feature or changing some syntax, be careful to update the VSCode spec and the extension itself so it remains consistent.

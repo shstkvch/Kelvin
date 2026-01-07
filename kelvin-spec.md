@@ -1578,6 +1578,144 @@ For other editors, use the TextMate grammar:
 }
 ```
 
+### IntelliSense Specification
+
+The editor provides context-aware completions based on cursor position. This section documents what completions appear in each context, serving as a reference when the language evolves.
+
+#### Completion Contexts
+
+| Context | Location | Completions |
+|---------|----------|-------------|
+| `app_body` | Inside `app {}` | `config`, `entity`, `view` |
+| `entity_body` | Inside `entity {}` | Field definitions |
+| `field_type` | After `field_name:` in entity | Field types + entity names |
+| `view_body` | Inside `view {}` | `visibility`, `require`, `list`, `detail`, `create`, `edit`, `action` |
+| `view_property` | After `visibility:` | `public`, `authenticated` |
+| `list_clause` | Inside `list Entity {}` | `show`, `where`, `order by`, `filter by`, `actions` |
+| `detail_clause` | Inside `detail Entity {}` | `show`, `where` |
+| `create_clause` | Inside `create Entity {}` | `input`, `then` |
+| `edit_clause` | Inside `edit Entity {}` | `require`, `input`, `then` |
+| `action_clause` | Inside `action {}` | `require`, `then` |
+| `show_fields` | After `show:` | Entity fields + `*` |
+| `input_fields` | After `input:` | Entity fields (excluding `id`, `created`, `updated`) |
+| `actions_list` | After `actions:` | `edit`, `delete` + custom actions |
+| `order_by` | After `order by:` | Entity fields |
+| `order_direction` | After `order by: field` | `asc`, `desc` |
+| `filter_by` | After `filter by:` | Entity fields |
+| `expression` | In `where:`, `require:`, `then {}` | Fields, operators, functions, context vars |
+
+#### Completion Items
+
+**Field Types:**
+
+| Type | Snippet | Description |
+|------|---------|-------------|
+| `text` | `text(${1:1}..${2:100})` | String with length constraints |
+| `email` | `email` | Email with validation |
+| `phone` | `phone` | Phone number |
+| `url` | `url` | URL with validation |
+| `int` | `int(${1:0}..${2:})` | Integer with range |
+| `money` | `money` | Decimal currency |
+| `bool` | `bool` | Boolean |
+| `date` | `date` | Date (YYYY-MM-DD) |
+| `time` | `time` | Time (HH:MM) |
+| `timestamp` | `timestamp` | Date and time |
+| `enum` | `enum('${1:val1}', '${2:val2}')` | Enumeration |
+| `uuid` | `uuid` | Unique identifier |
+
+**View Visibility:**
+
+| Value | Description |
+|-------|-------------|
+| `public` | No authentication required |
+| `authenticated` | User must be logged in (default) |
+
+**Block Keywords:**
+
+| Keyword | Description |
+|---------|-------------|
+| `list` | Display multiple records |
+| `detail` | Display single record |
+| `create` | Create new records |
+| `edit` | Update existing records |
+| `action` | Custom action |
+
+**Clause Keywords:**
+
+| Keyword | Used In | Description |
+|---------|---------|-------------|
+| `show` | list, detail | Fields to display |
+| `where` | list, detail | Filter condition |
+| `order by` | list | Sort order |
+| `filter by` | list | UI filter fields |
+| `actions` | list | Available actions |
+| `input` | create, edit | Editable fields |
+| `then` | create, edit, action | Post-save logic |
+| `require` | view, edit, action | Access control |
+
+**Expression Operators:**
+
+| Operator | Description |
+|----------|-------------|
+| `and` | Logical AND |
+| `or` | Logical OR |
+| `not` | Logical NOT |
+| `in` | List membership |
+| `==` | Equals |
+| `!=` | Not equals |
+| `>` | Greater than |
+| `>=` | Greater or equal |
+| `<` | Less than |
+| `<=` | Less or equal |
+
+**Built-in Functions:**
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `now()` | timestamp | Current date and time |
+| `today()` | date | Current date |
+| `generate()` | uuid | New UUID |
+| `days_ago(n)` | date | Date n days in the past |
+| `days_from_now(n)` | date | Date n days in the future |
+| `next_sequence(entity)` | int | Next sequence number |
+| `trigger(name, entity)` | void | Fire a trigger |
+
+**Context Variables:**
+
+| Variable | Description |
+|----------|-------------|
+| `current_user` | The logged-in User entity |
+| `role` | Shorthand for `current_user.role` |
+
+**Built-in Actions:**
+
+| Action | Description |
+|--------|-------------|
+| `edit` | Navigate to edit form |
+| `delete` | Delete the entity |
+
+**Order Direction:**
+
+| Value | Description |
+|-------|-------------|
+| `asc` | Ascending order |
+| `desc` | Descending order |
+
+**Literals:**
+
+| Literal | Description |
+|---------|-------------|
+| `true` | Boolean true |
+| `false` | Boolean false |
+| `null` | Null value |
+
+#### Trigger Characters
+
+Completions are triggered by:
+- `:` - After field names, clause keywords
+- `.` - After entity references for field access
+- ` ` (space) - After keywords
+
 ---
 
 ## Examples

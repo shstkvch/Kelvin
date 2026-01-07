@@ -1,15 +1,47 @@
 ---
-layout: default
-title: Home
+layout: home
+
+hero:
+  name: Kelvin
+  text: Define your app. Get your API.
+  tagline: A declarative language for building web applications. Define your data models, APIs, and admin interfaces in a single file.
+  actions:
+    - theme: brand
+      text: Get Started
+      link: /getting-started/
+    - theme: alt
+      text: View Examples
+      link: /examples/
+    - theme: alt
+      text: GitHub
+      link: https://github.com/shstkvch/Kelvin
+
+features:
+  - icon: 📝
+    title: Declarative Syntax
+    details: Describe what you want, not how to build it. Define entities, views, and access control in plain, readable code.
+  - icon: ⚡
+    title: Instant REST API
+    details: Every entity automatically gets CRUD endpoints. List, create, read, update, delete — all generated for you.
+  - icon: 🎛️
+    title: Built-in Admin Panel
+    details: A working admin interface out of the box. Login, list views, create forms, edit pages — ready to use.
+  - icon: 🔐
+    title: Authentication Included
+    details: Add a User entity and get JWT-based authentication. Login, register, and protected routes automatically.
+  - icon: 🔄
+    title: Hot Reload
+    details: Edit your .kelvin file and see changes instantly. No restart needed. Schema migrations happen automatically.
+  - icon: 🧩
+    title: Rich Type System
+    details: Text, email, phone, URL, money, dates, enums, and relationships. With built-in validation and constraints.
 ---
 
-# Kelvin
+## Quick Example
 
-**A declarative language for building web applications.**
+Define a complete blog backend in 20 lines:
 
-Define your data models, APIs, admin interfaces, and access control in a single file. No boilerplate, no code generation, no framework to learn.
-
-```
+```kelvin
 app Blog {
   entity Post {
     title: text(1..200)
@@ -32,6 +64,10 @@ app Blog {
       show: title, published, created
       actions: edit, delete
     }
+
+    create Post {
+      input: title, body
+    }
   }
 }
 ```
@@ -43,29 +79,13 @@ Server running at http://localhost:3000
 
 That's it. You have a database, REST API, and admin panel.
 
-## Get Started
+## Ready to Get Started?
 
-- [**Tutorial**](tutorial) - Build a guestbook in 5 minutes
-- [**Language Specification**](specification) - Complete reference
-- [**GitHub Repository**](https://github.com/shstkvch/Kelvin) - Source code and examples
+<script setup>
+import { VPButton } from 'vitepress/theme'
+</script>
 
-## Features
-
-- **Declarative syntax** - Describe what you want, not how to build it
-- **Instant API** - REST endpoints generated automatically
-- **Built-in admin** - A working admin interface out of the box
-- **Authentication** - JWT-based auth with registration and login
-- **Hot reload** - Edit and see changes instantly
-- **Type validation** - Rich types with constraints
-- **SQLite storage** - Zero-config database
-
-## Installation
-
-```bash
-npm install -g kelvin-lang
-kelvin serve your-app.kelvin
-```
-
-## License
-
-MIT
+<div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+  <VPButton tag="a" size="medium" theme="brand" text="Read the Docs" href="/getting-started/" />
+  <VPButton tag="a" size="medium" theme="alt" text="5-Minute Tutorial" href="/tutorials/guestbook" />
+</div>

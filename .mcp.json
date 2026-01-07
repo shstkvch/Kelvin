@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "vscode": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "github:malvex/mcp-server-vscode"
+      ]
+    }
+  }
+}

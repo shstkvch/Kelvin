@@ -1,0 +1,15 @@
+{
+  "name": "kelvin-docs",
+  "version": "1.0.0",
+  "description": "Kelvin language documentation",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}

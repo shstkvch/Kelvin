@@ -2,7 +2,7 @@
   "name": "kelvin-lang",
   "displayName": "Kelvin",
   "description": "Language support for Kelvin - a declarative language for building web applications",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "kelvin-lang",
   "repository": {
     "type": "git",
@@ -22,6 +22,10 @@
     "database"
   ],
   "icon": "images/icon.png",
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:kelvin"
+  ],
   "contributes": {
     "languages": [
       {
@@ -48,6 +52,35 @@
         "language": "kelvin",
         "path": "./snippets/kelvin.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Kelvin",
+      "properties": {
+        "kelvin.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Traces communication between VS Code and the Kelvin language server"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "build:server": "esbuild src/server/server.ts --bundle --outfile=dist/server.js --format=cjs --platform=node",
+    "watch": "npm run build -- --watch",
+    "vscode:prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/vscode": "^1.75.0",
+    "esbuild": "^0.19.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
   }
 }
