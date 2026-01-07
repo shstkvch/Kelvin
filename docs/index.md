@@ -62,11 +62,8 @@ That's it. You have a database, REST API, and admin panel.
 ## Installation
 
 ```bash
-git clone https://github.com/shstkvch/Kelvin.git
-cd Kelvin
-npm install
-npm run build
-node dist/index.js serve your-app.kelvin
+npm install -g kelvin-lang
+kelvin serve your-app.kelvin
 ```
 
 ## License

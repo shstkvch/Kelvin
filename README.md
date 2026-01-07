@@ -50,13 +50,10 @@ That's it. You have a database, REST API, and admin panel.
 
 ## Quick Start
 
-### Install from source
+### Install
 
 ```bash
-git clone https://github.com/shstkvch/Kelvin.git
-cd Kelvin
-npm install
-npm run build
+npm install -g kelvin-lang
 ```
 
 ### Create your first app
@@ -87,7 +84,7 @@ app HelloWorld {
 ### Run it
 
 ```bash
-node dist/index.js serve app.kelvin
+kelvin serve app.kelvin
 ```
 
 Your API is now running:

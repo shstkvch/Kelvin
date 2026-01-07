@@ -14,15 +14,12 @@ A guestbook where:
 - Node.js 18 or later
 - npm
 
-## Step 1: Set Up the Project
+## Step 1: Install Kelvin
 
-Clone the Kelvin repository and install dependencies:
+Install Kelvin globally via npm:
 
 ```bash
-git clone https://github.com/shstkvch/Kelvin.git
-cd Kelvin
-npm install
-npm run build
+npm install -g kelvin-lang
 ```
 
 ## Step 2: Create Your App
@@ -82,7 +79,7 @@ Let's break this down:
 Check that your Kelvin file is valid:
 
 ```bash
-node dist/index.js check guestbook.kelvin
+kelvin check guestbook.kelvin
 ```
 
 You should see:
@@ -107,7 +104,7 @@ No errors found.
 Run the development server:
 
 ```bash
-node dist/index.js serve guestbook.kelvin
+kelvin serve guestbook.kelvin
 ```
 
 You should see:
@@ -248,7 +245,7 @@ Now that you have a working guestbook, try:
 The complete guestbook example is available at `examples/guestbook.kelvin` in the Kelvin repository.
 
 ```bash
-node dist/index.js serve examples/guestbook.kelvin
+kelvin serve examples/guestbook.kelvin
 ```
 
 Happy building!
