@@ -1,0 +1,53 @@
+{
+  "name": "kelvin-lang",
+  "displayName": "Kelvin",
+  "description": "Language support for Kelvin - a declarative language for building web applications",
+  "version": "0.1.0",
+  "publisher": "kelvin-lang",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kelvin-lang/vscode-kelvin"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "kelvin",
+    "crud",
+    "declarative",
+    "web",
+    "database"
+  ],
+  "icon": "images/icon.png",
+  "contributes": {
+    "languages": [
+      {
+        "id": "kelvin",
+        "aliases": [
+          "Kelvin",
+          "kelvin"
+        ],
+        "extensions": [
+          ".kelvin"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "kelvin",
+        "scopeName": "source.kelvin",
+        "path": "./syntaxes/kelvin.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "kelvin",
+        "path": "./snippets/kelvin.json"
+      }
+    ]
+  }
+}

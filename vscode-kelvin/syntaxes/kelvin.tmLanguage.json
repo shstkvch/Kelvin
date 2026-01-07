@@ -1,0 +1,213 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Kelvin",
+  "scopeName": "source.kelvin",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#app" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#constants" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#operators" },
+    { "include": "#entity-names" },
+    { "include": "#field-names" },
+    { "include": "#functions" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-dash.kelvin",
+          "match": "--.*$"
+        }
+      ]
+    },
+    "app": {
+      "patterns": [
+        {
+          "match": "\\b(app)\\s+([A-Z][a-zA-Z0-9]*)\\s*\\{",
+          "captures": {
+            "1": { "name": "keyword.declaration.app.kelvin" },
+            "2": { "name": "entity.name.type.app.kelvin" }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.kelvin",
+          "match": "\\b(app|entity|view|config)\\b"
+        },
+        {
+          "name": "keyword.control.kelvin",
+          "match": "\\b(list|detail|create|edit|action|trigger)\\b"
+        },
+        {
+          "name": "keyword.other.kelvin",
+          "match": "\\b(require|visibility|show|where|order|filter|by|actions|input|then|validate|as|via)\\b"
+        },
+        {
+          "name": "keyword.operator.logical.kelvin",
+          "match": "\\b(and|or|not|in)\\b"
+        },
+        {
+          "name": "keyword.other.order.kelvin",
+          "match": "\\b(asc|desc)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.primitive.kelvin",
+          "match": "\\b(text|email|phone|url|int|money|bool|date|time|timestamp|uuid)\\b"
+        },
+        {
+          "name": "storage.type.enum.kelvin",
+          "match": "\\b(enum)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.kelvin",
+          "match": "\\b(true|false)\\b"
+        },
+        {
+          "name": "constant.language.null.kelvin",
+          "match": "\\b(null)\\b"
+        },
+        {
+          "name": "constant.language.visibility.kelvin",
+          "match": "\\b(public|authenticated)\\b"
+        },
+        {
+          "name": "variable.language.kelvin",
+          "match": "\\b(current_user|role)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.single.kelvin",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.kelvin",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.decimal.kelvin",
+          "match": "\\b[0-9]+\\.[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.kelvin",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.comparison.kelvin",
+          "match": "(==|!=|>=|<=|>|<)"
+        },
+        {
+          "name": "keyword.operator.assignment.kelvin",
+          "match": "(?<![=!<>])=(?!=)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.kelvin",
+          "match": "(\\+|-|\\*|/)"
+        },
+        {
+          "name": "keyword.operator.logical.kelvin",
+          "match": "!"
+        },
+        {
+          "name": "keyword.operator.range.kelvin",
+          "match": "\\.\\."
+        },
+        {
+          "name": "keyword.operator.optional.kelvin",
+          "match": "\\?"
+        }
+      ]
+    },
+    "entity-names": {
+      "patterns": [
+        {
+          "match": "\\b(entity|list|detail|create|edit)\\s+([A-Z][a-zA-Z0-9]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.kelvin" },
+            "2": { "name": "entity.name.type.kelvin" }
+          }
+        },
+        {
+          "match": ":\\s*([A-Z][a-zA-Z0-9]*)(\\?)?",
+          "captures": {
+            "1": { "name": "entity.name.type.kelvin" },
+            "2": { "name": "keyword.operator.optional.kelvin" }
+          }
+        },
+        {
+          "match": ":\\s*\\[([A-Z][a-zA-Z0-9]*)\\]",
+          "captures": {
+            "1": { "name": "entity.name.type.kelvin" }
+          }
+        },
+        {
+          "match": "\\(([a-z_][a-z0-9_]*):\\s*([A-Z][a-zA-Z0-9]*)\\)",
+          "captures": {
+            "1": { "name": "variable.parameter.kelvin" },
+            "2": { "name": "entity.name.type.kelvin" }
+          }
+        }
+      ]
+    },
+    "field-names": {
+      "patterns": [
+        {
+          "match": "^\\s*([a-z_][a-z0-9_]*)\\s*:",
+          "captures": {
+            "1": { "name": "variable.other.property.kelvin" }
+          }
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.kelvin",
+          "match": "\\b(now|today|generate|days_ago|days_from_now|next_sequence|trigger)\\s*\\("
+        },
+        {
+          "match": "\\b(view)\\s+([a-z_][a-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.kelvin" },
+            "2": { "name": "entity.name.function.kelvin" }
+          }
+        },
+        {
+          "match": "\\b(action)\\s+([a-z_][a-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.kelvin" },
+            "2": { "name": "entity.name.function.kelvin" }
+          }
+        }
+      ]
+    }
+  }
+}

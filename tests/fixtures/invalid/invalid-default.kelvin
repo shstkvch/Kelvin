@@ -1,0 +1,5 @@
+app Test {
+  entity Post {
+    status: enum('draft', 'published') = 'invalid'
+  }
+}

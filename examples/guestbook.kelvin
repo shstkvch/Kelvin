@@ -1,0 +1,34 @@
+app Guestbook {
+  -- User entity enables authentication
+  entity User {
+    email: email
+    name: text(1..100)?
+  }
+
+  entity Entry {
+    name: text(1..100)
+    message: text(1..500)
+  }
+
+  -- Public view: anyone can read and sign the guestbook
+  view guestbook {
+    visibility: public
+
+    list Entry {
+      show: name, message, created
+      order by: created desc
+    }
+
+    create Entry {
+      input: name, message
+    }
+  }
+
+  -- Admin view: manage entries (requires login)
+  view admin {
+    list Entry {
+      show: name, message, created
+      actions: delete
+    }
+  }
+}

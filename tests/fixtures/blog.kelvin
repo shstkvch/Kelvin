@@ -1,0 +1,167 @@
+app Blog {
+  config {
+    accent: '#6366F1'
+  }
+
+  entity User {
+    email: email
+    name: text(1..100)
+    bio: text(0..500)?
+    role: enum('author', 'editor', 'admin') = 'author'
+  }
+
+  entity Category {
+    name: text(1..50)
+    slug: text(1..50)
+  }
+
+  entity Post {
+    title: text(1..200)
+    slug: text(1..200)
+    excerpt: text(0..500)?
+    body: text(1..100000)
+    author: User
+    category: Category?
+    status: enum('draft', 'review', 'published', 'archived') = 'draft'
+    published_at: timestamp?
+  }
+
+  entity Comment {
+    post: Post
+    author: User
+    body: text(1..2000)
+    approved: bool = false
+  }
+
+  -- Public blog
+  view blog {
+    visibility: public
+
+    list Post {
+      show: title, excerpt, author.name, category.name, published_at
+      where: status == 'published'
+      order by: published_at desc
+      filter by: category
+    }
+
+    detail Post as post {
+      show: title, body, author.name, category.name, published_at
+      where: status == 'published'
+
+      list Comment {
+        show: body, author.name, created
+        where: post == post and approved
+        order by: created asc
+      }
+    }
+  }
+
+  -- Author dashboard
+  view author {
+    list Post {
+      show: title, status, created
+      where: author == current_user
+      order by: updated desc
+      filter by: status
+      actions: edit, delete, submit
+    }
+
+    create Post as post {
+      input: title, slug, excerpt, body, category
+
+      then {
+        post.author = current_user
+        post.status = 'draft'
+      }
+    }
+
+    edit Post as post {
+      require: post.author == current_user
+      input: title, slug, excerpt, body, category
+    }
+
+    action submit(post: Post) {
+      require {
+        post.author == current_user
+        post.status == 'draft'
+      }
+
+      then {
+        post.status = 'review'
+      }
+    }
+  }
+
+  -- Editor workflow
+  view editor {
+    require: role in ['editor', 'admin']
+
+    list Post {
+      show: title, author.name, status, updated
+      where: status == 'review'
+      order by: updated asc
+      actions: approve, reject
+    }
+
+    action approve(post: Post) {
+      require: post.status == 'review'
+
+      then {
+        post.status = 'published'
+        post.published_at = now()
+      }
+    }
+
+    action reject(post: Post) {
+      require: post.status == 'review'
+
+      then {
+        post.status = 'draft'
+      }
+    }
+
+    list Comment {
+      show: body, post.title, author.name, approved
+      where: approved == false
+      actions: approve_comment, delete
+    }
+
+    action approve_comment(comment: Comment) {
+      then {
+        comment.approved = true
+      }
+    }
+  }
+
+  -- Admin panel
+  view admin {
+    require: role == 'admin'
+
+    list User {
+      show: name, email, role, created
+      filter by: role
+      actions: edit, delete
+    }
+
+    create User {
+      input: email, name, role
+    }
+
+    list Category {
+      show: name, slug
+      actions: edit, delete
+    }
+
+    create Category {
+      input: name, slug
+    }
+
+    list Post {
+      show: title, author.name, status, published_at
+      filter by: status
+      filter by: author
+      filter by: category
+      actions: edit, delete
+    }
+  }
+}

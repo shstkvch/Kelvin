@@ -1,0 +1,11 @@
+app Test {
+  entity Post {
+    title: text
+  }
+
+  view admin {
+    create Post {
+      input: id, title
+    }
+  }
+}

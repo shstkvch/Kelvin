@@ -1,0 +1,11 @@
+app Test {
+  entity Post {
+    title: text
+  }
+
+  view admin {
+    list Post {
+      show: title, nonexistent
+    }
+  }
+}

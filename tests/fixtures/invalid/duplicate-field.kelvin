@@ -1,0 +1,6 @@
+app Test {
+  entity User {
+    name: text
+    name: text(1..100)
+  }
+}

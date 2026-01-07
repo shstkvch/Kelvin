@@ -1,0 +1,23 @@
+app Minimal {
+  entity Task {
+    title: text(1..200)
+    done: bool = false
+  }
+
+  view tasks {
+    list Task {
+      show: title, done, created
+      actions: edit, delete, toggle
+    }
+
+    create Task {
+      input: title
+    }
+
+    action toggle(task: Task) {
+      then {
+        task.done = !task.done
+      }
+    }
+  }
+}

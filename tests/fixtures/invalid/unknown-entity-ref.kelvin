@@ -1,0 +1,6 @@
+app Test {
+  entity Post {
+    title: text
+    author: Admin
+  }
+}

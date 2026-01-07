@@ -1,0 +1,16 @@
+title: Kelvin
+description: A declarative language for building web applications
+remote_theme: pages-themes/minimal@v0.2.0
+plugins:
+  - jekyll-remote-theme
+
+# Navigation
+nav:
+  - title: Home
+    url: /
+  - title: Tutorial
+    url: /tutorial
+  - title: Specification
+    url: /specification
+  - title: GitHub
+    url: https://github.com/shstkvch/Kelvin

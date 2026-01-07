@@ -1,0 +1,114 @@
+app Blog {
+  entity User {
+    email: email
+    name: text(1..100)
+    role: enum('author', 'editor', 'admin') = 'author'
+  }
+
+  entity Category {
+    name: text(1..50)
+    slug: text(1..50)
+  }
+
+  entity Post {
+    title: text(1..200)
+    body: text
+    author: User
+    category: Category?
+    status: enum('draft', 'review', 'published') = 'draft'
+  }
+
+  -- Public blog (anyone can read published posts)
+  view blog {
+    visibility: public
+
+    list Post {
+      show: title, author.name, status
+      where: status == 'published'
+      order by: created desc
+    }
+  }
+
+  -- Author dashboard (authors manage their own posts)
+  view author {
+    list Post {
+      show: title, status, created
+      where: author == current_user
+      order by: updated desc
+      actions: edit, delete, submit
+    }
+
+    create Post {
+      input: title, body, category
+
+      then {
+        post.author = current_user
+        post.status = 'draft'
+      }
+    }
+
+    action submit(post: Post) {
+      require: post.status == 'draft'
+
+      then {
+        post.status = 'review'
+      }
+    }
+  }
+
+  -- Editor workflow (editors approve/reject posts)
+  view editor {
+    require: role in ['editor', 'admin']
+
+    list Post {
+      show: title, author.name, status, updated
+      where: status == 'review'
+      order by: updated asc
+      actions: approve, reject
+    }
+
+    action approve(post: Post) {
+      require: post.status == 'review'
+
+      then {
+        post.status = 'published'
+      }
+    }
+
+    action reject(post: Post) {
+      require: post.status == 'review'
+
+      then {
+        post.status = 'draft'
+      }
+    }
+  }
+
+  -- Admin panel (full access)
+  view admin {
+    require: role == 'admin'
+
+    list User {
+      show: name, email, role
+      actions: edit, delete
+    }
+
+    create User {
+      input: email, name, role
+    }
+
+    list Category {
+      show: name, slug
+      actions: edit, delete
+    }
+
+    create Category {
+      input: name, slug
+    }
+
+    list Post {
+      show: title, author.name, status
+      actions: edit, delete
+    }
+  }
+}

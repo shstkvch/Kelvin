@@ -1,0 +1,18 @@
+app HotReloadTest {
+  entity Item {
+    name: text(1..100)
+    description: text?
+  }
+
+  view items {
+    visibility: public
+
+    list Item {
+      show: name, description, created
+    }
+
+    create Item {
+      input: name, description
+    }
+  }
+}

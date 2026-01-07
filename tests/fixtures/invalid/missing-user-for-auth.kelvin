@@ -1,0 +1,12 @@
+app Test {
+  entity Post {
+    title: text
+  }
+
+  view admin {
+    require: role == 'admin'
+    list Post {
+      show: title
+    }
+  }
+}

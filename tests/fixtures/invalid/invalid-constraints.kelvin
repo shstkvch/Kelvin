@@ -1,0 +1,6 @@
+app Test {
+  entity Post {
+    title: text(100..10)
+    priority: int(100..10)
+  }
+}

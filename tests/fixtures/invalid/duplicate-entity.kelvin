@@ -1,0 +1,9 @@
+app Test {
+  entity User {
+    name: text
+  }
+
+  entity User {
+    email: email
+  }
+}
