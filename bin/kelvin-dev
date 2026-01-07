@@ -1,0 +1,14 @@
+#!/bin/bash
+# kelvin-dev - Run Kelvin CLI from development repository
+# This script allows testing the development version without installing globally
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KELVIN_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Ensure dist exists and is up to date
+if [ ! -f "$KELVIN_ROOT/dist/index.js" ]; then
+    echo "Building Kelvin..." >&2
+    (cd "$KELVIN_ROOT" && npm run build) >&2
+fi
+
+node "$KELVIN_ROOT/dist/index.js" "$@"

@@ -128,6 +128,36 @@ To install:
 
 Or copy the `vscode-kelvin` folder to your VS Code extensions directory.
 
+## Development
+
+To work on Kelvin itself:
+
+```bash
+git clone https://github.com/shstkvch/Kelvin.git
+cd Kelvin
+npm install
+npm run build
+```
+
+Use the `kelvin-dev` script to run the CLI from the development repo:
+
+```bash
+# Add to your PATH (add this to ~/.bashrc or ~/.zshrc)
+export PATH="/path/to/Kelvin/bin:$PATH"
+
+# Now you can use kelvin-dev anywhere
+kelvin-dev serve myapp.kelvin
+```
+
+The `kelvin-dev` command always runs from the development build, making it easy to test changes.
+
+### Running Tests
+
+```bash
+npm test              # Unit and integration tests
+npm run test:e2e      # End-to-end tests (requires Playwright)
+```
+
 ## Contributing
 
 Contributions are welcome! Please read the language spec before contributing to understand the design philosophy.

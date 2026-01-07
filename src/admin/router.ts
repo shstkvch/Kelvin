@@ -4,6 +4,7 @@ import { QueryBuilder } from '../runtime/query-builder';
 import { AppNode, ViewNode, ListBlockNode, CreateBlockNode, EditBlockNode } from '../parser/ast';
 import { verifyToken, generateToken } from '../auth/jwt';
 import { verifyPassword } from '../auth/password';
+import { AppContext } from '../api/server';
 import {
   renderLayout,
   renderLoginPage,
@@ -12,10 +13,8 @@ import {
   renderEditPage,
 } from './templates';
 
-export function createAdminRouter(db: Database, ast: AppNode, secret?: string): Router {
+export function createAdminRouter(db: Database, appCtx: AppContext, secret?: string): Router {
   const router = Router();
-  const queryBuilder = new QueryBuilder(db, ast);
-  const entities = new Map(ast.entities.map(e => [e.name, e]));
 
   // Session middleware for admin
   router.use((req, res, next) => {
@@ -35,7 +34,7 @@ export function createAdminRouter(db: Database, ast: AppNode, secret?: string): 
 
   // Login page
   router.get('/login', (_req, res) => {
-    res.send(renderLoginPage(ast));
+    res.send(renderLoginPage(appCtx.ast));
   });
 
   // Login handler
@@ -45,12 +44,12 @@ export function createAdminRouter(db: Database, ast: AppNode, secret?: string): 
     const user = db.queryOne('SELECT * FROM users WHERE email = ?', [email]) as Record<string, unknown> | null;
 
     if (!user || !user.password_hash) {
-      return res.send(renderLoginPage(ast, 'Invalid credentials'));
+      return res.send(renderLoginPage(appCtx.ast, 'Invalid credentials'));
     }
 
     const valid = await verifyPassword(password, user.password_hash as string);
     if (!valid) {
-      return res.send(renderLoginPage(ast, 'Invalid credentials'));
+      return res.send(renderLoginPage(appCtx.ast, 'Invalid credentials'));
     }
 
     const token = generateToken({
@@ -79,6 +78,7 @@ export function createAdminRouter(db: Database, ast: AppNode, secret?: string): 
 
   // Dashboard - redirect to first view
   router.get('/', (_req, res) => {
+    const ast = appCtx.ast;
     if (ast.views.length > 0) {
       res.redirect(`/admin/${ast.views[0].name}`);
     } else {
@@ -86,209 +86,248 @@ export function createAdminRouter(db: Database, ast: AppNode, secret?: string): 
     }
   });
 
-  // Register routes for each view
-  for (const view of ast.views) {
-    registerViewRoutes(router, view, ast, queryBuilder, entities);
-  }
+  // Dynamic view routes - look up view from current AST on each request
+  router.get('/:viewName', (req, res) => {
+    const ast = appCtx.ast;
+    const view = ast.views.find(v => v.name === req.params.viewName);
+    if (!view) return res.status(404).send('View not found');
 
-  return router;
-}
+    if (!checkViewAccess(view, req.ctx!)) {
+      return res.status(403).send('Forbidden');
+    }
 
-function registerViewRoutes(
-  router: Router,
-  view: ViewNode,
-  ast: AppNode,
-  queryBuilder: QueryBuilder,
-  entities: Map<string, any>
-): void {
-  const viewPath = `/${view.name}`;
+    const firstList = view.blocks.find(b => b.type === 'ListBlock') as ListBlockNode | undefined;
+    if (firstList) {
+      res.redirect(`/admin/${view.name}/${toSnakeCase(firstList.entity)}`);
+    } else {
+      res.send(renderLayout(view.name, '<p>No list blocks</p>', ast, view.name));
+    }
+  });
 
-  // View index - redirect to first list block
-  const firstList = view.blocks.find(b => b.type === 'ListBlock') as ListBlockNode | undefined;
-  if (firstList) {
-    router.get(viewPath, (req, res) => {
+  // List page
+  router.get('/:viewName/:entityName', async (req, res) => {
+    try {
+      const ast = appCtx.ast;
+      const view = ast.views.find(v => v.name === req.params.viewName);
+      if (!view) return res.status(404).send('View not found');
+
       if (!checkViewAccess(view, req.ctx!)) {
         return res.status(403).send('Forbidden');
       }
-      res.redirect(`/admin${viewPath}/${toSnakeCase(firstList.entity)}`);
-    });
-  }
 
-  for (const block of view.blocks) {
-    if (block.type === 'ListBlock') {
-      const entityPath = `/${toSnakeCase(block.entity)}`;
-      const entity = entities.get(block.entity);
+      const block = view.blocks.find(
+        b => b.type === 'ListBlock' && toSnakeCase(b.entity) === req.params.entityName
+      ) as ListBlockNode | undefined;
+      if (!block) return res.status(404).send('List not found');
 
-      // List page
-      router.get(`${viewPath}${entityPath}`, async (req, res) => {
-        try {
-          // Check view access
-          if (!checkViewAccess(view, req.ctx!)) {
-            return res.status(403).send('Forbidden');
-          }
+      const entity = ast.entities.find(e => e.name === block.entity);
+      if (!entity) return res.status(404).send('Entity not found');
 
-          const page = parseInt(req.query.page as string) || 1;
-          const result = await queryBuilder.list(
-            block.entity,
-            block,
-            { current_user: req.ctx!.current_user, role: req.ctx!.role },
-            { page, perPage: 20 }
-          );
+      const page = parseInt(req.query.page as string) || 1;
+      const result = await appCtx.queryBuilder.list(
+        block.entity,
+        block,
+        { current_user: req.ctx!.current_user, role: req.ctx!.role },
+        { page, perPage: 20 }
+      );
 
-          res.send(renderListPage(view, block, entity, result.data, result.pagination, ast));
-        } catch (err) {
-          console.error('List error:', err);
-          res.status(500).send('Error loading list');
-        }
-      });
+      res.send(renderListPage(view, block, entity, result.data, result.pagination, ast));
+    } catch (err) {
+      console.error('List error:', err);
+      res.status(500).send('Error loading list');
+    }
+  });
 
-      // Delete action
-      if (block.actions?.includes('delete')) {
-        router.post(`${viewPath}${entityPath}/:id/delete`, async (req, res) => {
-          try {
-            await queryBuilder.delete(block.entity, req.params.id);
-            res.redirect(`/admin${viewPath}${entityPath}`);
-          } catch (err) {
-            console.error('Delete error:', err);
-            res.redirect(`/admin${viewPath}${entityPath}`);
-          }
-        });
+  // Create form
+  router.get('/:viewName/:entityName/new', (req, res) => {
+    const ast = appCtx.ast;
+    const view = ast.views.find(v => v.name === req.params.viewName);
+    if (!view) return res.status(404).send('View not found');
+
+    if (!checkViewAccess(view, req.ctx!)) {
+      return res.status(403).send('Forbidden');
+    }
+
+    const block = view.blocks.find(
+      b => b.type === 'CreateBlock' && toSnakeCase(b.entity) === req.params.entityName
+    ) as CreateBlockNode | undefined;
+    if (!block) return res.status(404).send('Create block not found');
+
+    const entity = ast.entities.find(e => e.name === block.entity);
+    if (!entity) return res.status(404).send('Entity not found');
+
+    res.send(renderCreatePage(view, block, entity, ast));
+  });
+
+  // Create handler
+  router.post('/:viewName/:entityName', async (req, res) => {
+    try {
+      const ast = appCtx.ast;
+      const view = ast.views.find(v => v.name === req.params.viewName);
+      if (!view) return res.status(404).send('View not found');
+
+      if (!checkViewAccess(view, req.ctx!)) {
+        return res.status(403).send('Forbidden');
       }
 
-      // Custom actions
-      for (const actionName of block.actions || []) {
-        if (actionName === 'edit' || actionName === 'delete') continue;
+      const block = view.blocks.find(
+        b => b.type === 'CreateBlock' && toSnakeCase(b.entity) === req.params.entityName
+      ) as CreateBlockNode | undefined;
+      if (!block) return res.status(404).send('Create block not found');
 
-        router.post(`${viewPath}${entityPath}/:id/${actionName}`, async (req, res) => {
-          try {
-            // Find action definition in view
-            const actionBlock = view.blocks.find(
-              b => b.type === 'Action' && b.name === actionName
-            ) as any;
+      const entity = ast.entities.find(e => e.name === block.entity);
+      if (!entity) return res.status(404).send('Entity not found');
 
-            if (!actionBlock) {
-              return res.redirect(`/admin${viewPath}${entityPath}`);
-            }
-
-            // Get entity
-            const entityData = await queryBuilder.findById(block.entity, req.params.id);
-            if (!entityData) {
-              return res.redirect(`/admin${viewPath}${entityPath}`);
-            }
-
-            // Execute then block
-            const updates: Record<string, unknown> = {};
-            for (const stmt of actionBlock.then.statements) {
-              if (stmt.type === 'Assignment') {
-                const targetField = stmt.target.path[stmt.target.path.length - 1];
-                const value = evaluateExpression(stmt.value, req.ctx!, { [actionBlock.parameter.name]: entityData });
-                updates[targetField] = value;
-              }
-            }
-
-            await queryBuilder.update(block.entity, req.params.id, updates);
-            res.redirect(`/admin${viewPath}${entityPath}`);
-          } catch (err) {
-            console.error('Action error:', err);
-            res.redirect(`/admin${viewPath}${entityPath}`);
-          }
-        });
+      const data: Record<string, unknown> = {};
+      for (const field of block.input) {
+        if (req.body[field] !== undefined && req.body[field] !== '') {
+          data[field] = req.body[field];
+        }
       }
+
+      if (block.then) {
+        for (const stmt of block.then.statements) {
+          if (stmt.type === 'Assignment') {
+            const targetField = stmt.target.path[stmt.target.path.length - 1];
+            const value = evaluateExpression(stmt.value, req.ctx!, {});
+            data[targetField] = value;
+          }
+        }
+      }
+
+      await appCtx.queryBuilder.create(block.entity, data);
+      res.redirect(`/admin/${view.name}/${req.params.entityName}`);
+    } catch (err) {
+      console.error('Create error:', err);
+      res.status(500).send('Error creating record');
     }
+  });
 
-    if (block.type === 'CreateBlock') {
-      const entityPath = `/${toSnakeCase(block.entity)}`;
-      const entity = entities.get(block.entity);
+  // Edit form
+  router.get('/:viewName/:entityName/:id/edit', async (req, res) => {
+    try {
+      const ast = appCtx.ast;
+      const view = ast.views.find(v => v.name === req.params.viewName);
+      if (!view) return res.status(404).send('View not found');
 
-      // New form
-      router.get(`${viewPath}${entityPath}/new`, (req, res) => {
-        if (!checkViewAccess(view, req.ctx!)) {
-          return res.status(403).send('Forbidden');
-        }
-        res.send(renderCreatePage(view, block, entity, ast));
-      });
+      if (!checkViewAccess(view, req.ctx!)) {
+        return res.status(403).send('Forbidden');
+      }
 
-      // Create handler
-      router.post(`${viewPath}${entityPath}`, async (req, res) => {
-        try {
-          if (!checkViewAccess(view, req.ctx!)) {
-            return res.status(403).send('Forbidden');
-          }
+      const block = view.blocks.find(
+        b => b.type === 'EditBlock' && toSnakeCase(b.entity) === req.params.entityName
+      ) as EditBlockNode | undefined;
+      if (!block) return res.status(404).send('Edit block not found');
 
-          const data: Record<string, unknown> = {};
-          for (const field of block.input) {
-            if (req.body[field] !== undefined && req.body[field] !== '') {
-              data[field] = req.body[field];
-            }
-          }
+      const entity = ast.entities.find(e => e.name === block.entity);
+      if (!entity) return res.status(404).send('Entity not found');
 
-          // Execute then block assignments
-          if (block.then) {
-            for (const stmt of block.then.statements) {
-              if (stmt.type === 'Assignment') {
-                const targetField = stmt.target.path[stmt.target.path.length - 1];
-                const value = evaluateExpression(stmt.value, req.ctx!, {});
-                data[targetField] = value;
-              }
-            }
-          }
+      const entityData = await appCtx.queryBuilder.findById(block.entity, req.params.id);
+      if (!entityData) return res.redirect(`/admin/${view.name}/${req.params.entityName}`);
 
-          await queryBuilder.create(block.entity, data);
-          res.redirect(`/admin${viewPath}${entityPath}`);
-        } catch (err) {
-          console.error('Create error:', err);
-          res.send(renderCreatePage(view, block, entity, ast, 'Error creating record'));
-        }
-      });
+      res.send(renderEditPage(view, entity, entityData, block.input, ast));
+    } catch (err) {
+      console.error('Edit form error:', err);
+      res.status(500).send('Error loading edit form');
     }
+  });
 
-    if (block.type === 'EditBlock') {
-      const entityPath = `/${toSnakeCase(block.entity)}`;
-      const entity = entities.get(block.entity);
+  // Update handler
+  router.post('/:viewName/:entityName/:id', async (req, res) => {
+    try {
+      const ast = appCtx.ast;
+      const view = ast.views.find(v => v.name === req.params.viewName);
+      if (!view) return res.status(404).send('View not found');
 
-      // Edit form
-      router.get(`${viewPath}${entityPath}/:id/edit`, async (req, res) => {
-        try {
-          if (!checkViewAccess(view, req.ctx!)) {
-            return res.status(403).send('Forbidden');
-          }
+      if (!checkViewAccess(view, req.ctx!)) {
+        return res.status(403).send('Forbidden');
+      }
 
-          const entityData = await queryBuilder.findById(block.entity, req.params.id);
-          if (!entityData) {
-            return res.redirect(`/admin${viewPath}${entityPath}`);
-          }
+      const block = view.blocks.find(
+        b => b.type === 'EditBlock' && toSnakeCase(b.entity) === req.params.entityName
+      ) as EditBlockNode | undefined;
+      if (!block) return res.status(404).send('Edit block not found');
 
-          res.send(renderEditPage(view, entity, entityData, block.input, ast));
-        } catch (err) {
-          console.error('Edit form error:', err);
-          res.redirect(`/admin${viewPath}${entityPath}`);
+      const data: Record<string, unknown> = {};
+      for (const field of block.input) {
+        if (req.body[field] !== undefined) {
+          data[field] = req.body[field] === '' ? null : req.body[field];
         }
-      });
+      }
 
-      // Update handler
-      router.post(`${viewPath}${entityPath}/:id`, async (req, res) => {
-        try {
-          if (!checkViewAccess(view, req.ctx!)) {
-            return res.status(403).send('Forbidden');
-          }
-
-          const data: Record<string, unknown> = {};
-          for (const field of block.input) {
-            if (req.body[field] !== undefined) {
-              data[field] = req.body[field] === '' ? null : req.body[field];
-            }
-          }
-
-          await queryBuilder.update(block.entity, req.params.id, data);
-          res.redirect(`/admin${viewPath}${entityPath}`);
-        } catch (err) {
-          console.error('Update error:', err);
-          const entityData = await queryBuilder.findById(block.entity, req.params.id);
-          res.send(renderEditPage(view, entity, entityData || {}, block.input, ast, 'Error updating record'));
-        }
-      });
+      await appCtx.queryBuilder.update(block.entity, req.params.id, data);
+      res.redirect(`/admin/${view.name}/${req.params.entityName}`);
+    } catch (err) {
+      console.error('Update error:', err);
+      res.status(500).send('Error updating record');
     }
-  }
+  });
+
+  // Delete handler
+  router.post('/:viewName/:entityName/:id/delete', async (req, res) => {
+    try {
+      const ast = appCtx.ast;
+      const view = ast.views.find(v => v.name === req.params.viewName);
+      if (!view) return res.status(404).send('View not found');
+
+      const block = view.blocks.find(
+        b => b.type === 'ListBlock' && toSnakeCase(b.entity) === req.params.entityName
+      ) as ListBlockNode | undefined;
+      if (!block || !block.actions?.includes('delete')) {
+        return res.status(404).send('Delete not allowed');
+      }
+
+      await appCtx.queryBuilder.delete(block.entity, req.params.id);
+      res.redirect(`/admin/${view.name}/${req.params.entityName}`);
+    } catch (err) {
+      console.error('Delete error:', err);
+      res.redirect(`/admin/${req.params.viewName}/${req.params.entityName}`);
+    }
+  });
+
+  // Custom action handler
+  router.post('/:viewName/:entityName/:id/:action', async (req, res) => {
+    try {
+      const ast = appCtx.ast;
+      const view = ast.views.find(v => v.name === req.params.viewName);
+      if (!view) return res.status(404).send('View not found');
+
+      const actionName = req.params.action;
+      if (actionName === 'delete') return res.status(400).send('Use delete endpoint');
+
+      const listBlock = view.blocks.find(
+        b => b.type === 'ListBlock' && toSnakeCase(b.entity) === req.params.entityName
+      ) as ListBlockNode | undefined;
+      if (!listBlock || !listBlock.actions?.includes(actionName)) {
+        return res.status(404).send('Action not found');
+      }
+
+      const actionBlock = view.blocks.find(
+        b => b.type === 'Action' && b.name === actionName
+      ) as any;
+      if (!actionBlock) return res.status(404).send('Action not defined');
+
+      const entityData = await appCtx.queryBuilder.findById(listBlock.entity, req.params.id);
+      if (!entityData) return res.redirect(`/admin/${view.name}/${req.params.entityName}`);
+
+      const updates: Record<string, unknown> = {};
+      for (const stmt of actionBlock.then.statements) {
+        if (stmt.type === 'Assignment') {
+          const targetField = stmt.target.path[stmt.target.path.length - 1];
+          const value = evaluateExpression(stmt.value, req.ctx!, { [actionBlock.parameter.name]: entityData });
+          updates[targetField] = value;
+        }
+      }
+
+      await appCtx.queryBuilder.update(listBlock.entity, req.params.id, updates);
+      res.redirect(`/admin/${view.name}/${req.params.entityName}`);
+    } catch (err) {
+      console.error('Action error:', err);
+      res.redirect(`/admin/${req.params.viewName}/${req.params.entityName}`);
+    }
+  });
+
+  return router;
 }
 
 function checkViewAccess(view: ViewNode, ctx: any): boolean {

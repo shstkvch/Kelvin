@@ -64,8 +64,8 @@ export function createServer(ast: AppNode, db: Database, options: ServerOptions 
   // Auth routes
   app.use('/auth', createAuthRouter(db, ast, options.jwtSecret));
 
-  // Admin routes
-  app.use('/admin', createAdminRouter(db, ast, options.jwtSecret));
+  // Admin routes (uses appCtx for hot reload support)
+  app.use('/admin', createAdminRouter(db, appCtx, options.jwtSecret));
 
   // Generate routes from views
   for (const view of ast.views) {
