@@ -8,6 +8,7 @@ import { QueryBuilder } from '../runtime/query-builder';
 import { Migrator } from '../schema/migrator';
 import { createServer, AppContext } from '../api/server';
 import { AppNode } from '../parser/ast';
+import { setServerPort } from '../runtime/server-meta';
 
 export interface ServeOptions {
   port: number;
@@ -99,6 +100,9 @@ export async function serve(filePath: string, options: ServeOptions): Promise<vo
   const { app, appCtx } = createServer(ast, db, { jwtSecret });
 
   const server = app.listen(options.port, () => {
+    // Store the port so other commands (like one-time-login) can use it
+    setServerPort(db, options.port);
+
     console.log('');
     console.log(`${ast.name} is running!`);
     console.log('');

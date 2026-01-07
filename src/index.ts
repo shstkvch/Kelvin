@@ -67,7 +67,7 @@ program
   .argument('<file>', 'Path to .kelvin file')
   .argument('<email>', 'Email of the user')
   .option('--db <path>', 'Path to SQLite database file')
-  .option('--port <port>', 'Port for the generated URL', '3000')
+  .option('-p, --port <port>', 'Port for the generated URL (defaults to running server port)')
   .action(async (file, email, options) => {
     await oneTimeLogin(file, email, { db: options.db, port: options.port });
   });

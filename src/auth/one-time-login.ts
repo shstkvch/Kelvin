@@ -80,6 +80,8 @@ export function createOTLToken(
  * @returns Result with validity and user ID if valid
  */
 export function consumeOTLToken(db: Database, token: string): ConsumeResult {
+  // Reload database from disk to get latest tokens (CLI may have added new ones)
+  db.reload();
   ensureOTLTable(db);
 
   const record = db.queryOne(

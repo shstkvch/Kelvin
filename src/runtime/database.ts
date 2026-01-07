@@ -94,6 +94,16 @@ export class Database {
     }
   }
 
+  reload(): void {
+    if (!this.db || !this.dbPath) return;
+    if (!SQL) return;
+    if (!fs.existsSync(this.dbPath)) return;
+
+    const buffer = fs.readFileSync(this.dbPath);
+    this.db.close();
+    this.db = new SQL.Database(buffer);
+  }
+
   getTableNames(): string[] {
     const result = this.query(
       "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"

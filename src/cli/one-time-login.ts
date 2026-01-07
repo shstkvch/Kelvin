@@ -5,6 +5,7 @@ import { SemanticAnalyzer } from '../analyzer/semantic-analyzer';
 import { Database } from '../runtime/database';
 import { Migrator } from '../schema/migrator';
 import { createOTLToken } from '../auth/one-time-login';
+import { getServerPort } from '../runtime/server-meta';
 
 export interface OneTimeLoginOptions {
   db?: string;
@@ -77,9 +78,13 @@ export async function oneTimeLogin(
 
   // Generate one-time login token (15 minutes expiry)
   const token = createOTLToken(db, user.id, 15);
+
+  // Get port: prefer explicit option, then stored port from running server, then default
+  const storedPort = getServerPort(db);
+  const port = options.port || (storedPort ? storedPort.toString() : '3000');
+
   db.close();
 
-  const port = options.port || '3000';
   const loginUrl = `http://localhost:${port}/admin/login?token=${token}`;
 
   console.log('');

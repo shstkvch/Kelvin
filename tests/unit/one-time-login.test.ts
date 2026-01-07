@@ -201,4 +201,51 @@ describe('One-Time Login', () => {
       expect(record).toBeNull();
     });
   });
+
+  describe('cross-instance token consumption', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const testDbPath = path.join(__dirname, 'test-otl.db');
+
+    afterEach(() => {
+      if (fs.existsSync(testDbPath)) {
+        fs.unlinkSync(testDbPath);
+      }
+    });
+
+    it('consumes token created by different database instance', async () => {
+      // Simulate CLI: create token in one database instance
+      const db1 = new Database();
+      await db1.init(testDbPath);
+      db1.exec(`
+        CREATE TABLE users (
+          id TEXT PRIMARY KEY,
+          email TEXT UNIQUE,
+          password_hash TEXT
+        )
+      `);
+      const userId = uuidv4();
+      db1.run('INSERT INTO users (id, email) VALUES (?, ?)', [userId, 'test@example.com']);
+      const token = createOTLToken(db1, userId);
+      db1.close(); // Saves to disk
+
+      // Simulate server: open database before CLI creates token
+      const db2 = new Database();
+      await db2.init(testDbPath);
+
+      // Now simulate CLI creating another token while server is running
+      const db3 = new Database();
+      await db3.init(testDbPath);
+      const newToken = createOTLToken(db3, userId);
+      db3.close(); // Saves to disk
+
+      // Server should be able to consume the new token (due to reload)
+      const result = consumeOTLToken(db2, newToken);
+
+      expect(result.valid).toBe(true);
+      expect(result.userId).toBe(userId);
+
+      db2.close();
+    });
+  });
 });
