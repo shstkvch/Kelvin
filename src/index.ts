@@ -4,13 +4,19 @@ import { Command } from 'commander';
 import { serve } from './cli/serve';
 import { check } from './cli/check';
 import { migrate } from './cli/migrate';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Read version from package.json
+const packageJsonPath = path.join(__dirname, '..', 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
 const program = new Command();
 
 program
   .name('kelvin')
   .description('Kelvin - A declarative language for CRUD apps')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 program
   .command('serve')
