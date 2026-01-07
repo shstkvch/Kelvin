@@ -1,6 +1,6 @@
 {
   "name": "kelvin-lang",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A declarative language for building web applications",
   "main": "dist/index.js",
   "bin": {
