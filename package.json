@@ -6,6 +6,11 @@
   "bin": {
     "kelvin": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
@@ -13,16 +18,32 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
-    "lint": "eslint src tests --ext .ts"
+    "lint": "eslint src tests --ext .ts",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "kelvin",
     "crud",
     "declarative",
-    "web-framework"
+    "web-framework",
+    "backend",
+    "api",
+    "rest",
+    "admin"
   ],
-  "author": "",
+  "author": "shstkvch",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shstkvch/Kelvin.git"
+  },
+  "homepage": "https://github.com/shstkvch/Kelvin#readme",
+  "bugs": {
+    "url": "https://github.com/shstkvch/Kelvin/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "chokidar": "^5.0.0",

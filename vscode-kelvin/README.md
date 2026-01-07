@@ -1,6 +1,6 @@
 # Kelvin Language Support for VSCode
 
-This extension provides language support for [Kelvin](https://kelvin-lang.org), a declarative language for building web applications.
+This extension provides language support for [Kelvin](https://github.com/shstkvch/Kelvin), a declarative language for building web applications.
 
 ## Features
 
@@ -111,9 +111,9 @@ npm install -g kelvin-lang
 
 ## Links
 
-- [Kelvin Documentation](https://kelvin-lang.org/docs)
-- [GitHub Repository](https://github.com/kelvin-lang/kelvin)
-- [Issue Tracker](https://github.com/kelvin-lang/vscode-kelvin/issues)
+- [Kelvin Documentation](https://github.com/shstkvch/Kelvin/blob/main/kelvin-spec.md)
+- [GitHub Repository](https://github.com/shstkvch/Kelvin)
+- [Issue Tracker](https://github.com/shstkvch/Kelvin/issues)
 
 ## License
 

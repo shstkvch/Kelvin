@@ -73,20 +73,6 @@ That's it. You have a database, REST API, and admin panel.
 
 ## Installation
 
-### macOS
-
-```bash
-brew install kelvin-lang/tap/kelvin
-```
-
-### Linux
-
-```bash
-curl -fsSL https://kelvin-lang.org/install.sh | sh
-```
-
-### npm
-
 ```bash
 npm install -g kelvin-lang
 ```
